@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/lmtani/learning-current-city-weather/internal/entity"
 	"github.com/lmtani/learning-current-city-weather/internal/infra/cep"
 	"github.com/lmtani/learning-current-city-weather/internal/usecase"
@@ -15,11 +14,6 @@ import (
 )
 
 func main() {
-	err := godotenv.Load("config/.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	fmt.Println("Server is running on port 8080")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", GetTemperature)
@@ -27,7 +21,7 @@ func main() {
 	// Wrap the mux with the logging middleware.
 	loggedMux := loggingMiddleware(mux)
 
-	if err := http.ListenAndServe(":8080", loggedMux); err != nil {
+	if err := http.ListenAndServe("0.0.0.0:8080", loggedMux); err != nil {
 		log.Fatal(err)
 	}
 }
