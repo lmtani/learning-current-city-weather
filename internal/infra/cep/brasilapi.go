@@ -1,6 +1,7 @@
 package cep
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -35,14 +36,17 @@ type BrasilApi struct {
 }
 
 func NewBrasilApi(host string) *BrasilApi {
-	return &BrasilApi{url: host}
+	return &BrasilApi{url: host, timeout: 300 * time.Millisecond}
 }
 
 func (b *BrasilApi) GetCep(cep string) (*Cep, error) {
 	start := time.Now()
 	route := fmt.Sprintf("%s/api/cep/v1/%s", b.url, cep)
 
-	req, err := http.NewRequest(http.MethodGet, route, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, route, nil)
 	if err != nil {
 		return nil, err
 	}
