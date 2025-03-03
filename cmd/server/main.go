@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/handlers"
 	"github.com/lmtani/learning-current-city-weather/internal/entity"
 	"github.com/lmtani/learning-current-city-weather/internal/infra/cep"
 	"github.com/lmtani/learning-current-city-weather/internal/usecase"
@@ -19,19 +20,11 @@ func main() {
 	mux.HandleFunc("/", GetTemperature)
 
 	// Wrap the mux with the logging middleware.
-	loggedMux := loggingMiddleware(mux)
+	loggedMux := handlers.LoggingHandler(os.Stdout, mux)
 
 	if err := http.ListenAndServe("0.0.0.0:8080", loggedMux); err != nil {
 		log.Fatal(err)
 	}
-}
-
-// loggingMiddleware logs each incoming request's method, URL, and remote address.
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
-		next.ServeHTTP(w, r)
-	})
 }
 
 // GetTemperature returns the temperature of a city.
