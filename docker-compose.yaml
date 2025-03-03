@@ -1,0 +1,11 @@
+services:
+
+  server:
+    container_name: current-weather-for-cep
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - config/.env
+    ports:
+      - "8080:8080"
