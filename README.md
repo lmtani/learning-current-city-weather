@@ -7,12 +7,9 @@
 
 ## Demonstração
 
-Acesse em produção (Google Cloud Run):  
-**[CEP2Weather Demo](https://cep2weather-425952763790.us-central1.run.app?cep=13280001)**
+Acesse em produção (Google Cloud Run): **[CEP2Weather Demo](https://cep2weather-425952763790.us-central1.run.app?cep=13280001)**. Por exemplo:
 
-Basta informar o CEP na query string, por exemplo:
-
-```http
+```plaintext
 https://cep2weather-425952763790.us-central1.run.app?cep=13280001
 ```
 
@@ -69,7 +66,7 @@ https://cep2weather-425952763790.us-central1.run.app?cep=13280001
 
 4. **Acessar a aplicação** (por padrão, via porta 8080):
 
-   ```http
+   ```plaintext
    http://localhost:8080/?cep=13280001
    ```
 
