@@ -16,13 +16,14 @@ type TemperatureOutputDTO struct {
 
 // GetTemperature provides the temperature of a city.
 type GetTemperature struct {
-	weatherAPI entity.WeatherService
-	cepAPI     entity.CepService
+	weatherAPI  entity.WeatherService
+	cepAPI      entity.CepService
+	TimeToSleep time.Duration
 }
 
 // NewGetTemperature creates a new GetTemperature.
 func NewGetTemperature(weatherAPI entity.WeatherService, cepAPI entity.CepService) *GetTemperature {
-	return &GetTemperature{weatherAPI: weatherAPI, cepAPI: cepAPI}
+	return &GetTemperature{weatherAPI: weatherAPI, cepAPI: cepAPI, TimeToSleep: 2 * time.Second}
 }
 
 // Execute returns the temperature of the given city.
@@ -66,7 +67,7 @@ func (g *GetTemperature) retryGetCity(cep string) (string, error) {
 		if err == entity.ErrCEPNotFound {
 			return "", entity.ErrCEPNotFound
 		}
-		time.Sleep(2 * time.Second) // wait for 2 seconds before retrying
+		time.Sleep(g.TimeToSleep) // wait for 2 seconds before retrying
 	}
 
 	fmt.Println("Failed to get city after 3 retries. Assuming the city is not found.")

@@ -3,6 +3,7 @@ package usecase
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/lmtani/learning-current-city-weather/internal/entity"
 	"github.com/stretchr/testify/assert"
@@ -32,8 +33,8 @@ func TestGetTemperature_Execute(t *testing.T) {
 		mockWeather := &MockWeatherService{}
 		mockCep := &MockCepService{}
 
-		mockCep.On("Get", "12345678").Return("São Paulo", nil)
-		mockWeather.On("GetTemperature", "São Paulo").Return(25.0, nil)
+		mockCep.On("Get", "12345678").Return("São Paulo", nil).Times(1)
+		mockWeather.On("GetTemperature", "São Paulo").Return(25.0, nil).Times(1)
 
 		usecase := NewGetTemperature(mockWeather, mockCep)
 		result, err := usecase.Execute("12345678")
@@ -63,7 +64,7 @@ func TestGetTemperature_Execute(t *testing.T) {
 		mockWeather := &MockWeatherService{}
 		mockCep := &MockCepService{}
 
-		mockCep.On("Get", "12345678").Return("", entity.ErrCEPNotFound)
+		mockCep.On("Get", "12345678").Return("", entity.ErrCEPNotFound).Times(1)
 
 		usecase := NewGetTemperature(mockWeather, mockCep)
 		_, err := usecase.Execute("12345678")
@@ -73,12 +74,12 @@ func TestGetTemperature_Execute(t *testing.T) {
 		mockWeather.AssertNotCalled(t, "GetTemperature")
 	})
 
-	t.Run("should return error when weather service fails", func(t *testing.T) {
+	t.Run("should return ErrWeatherAPI when weather service fails", func(t *testing.T) {
 		mockWeather := &MockWeatherService{}
 		mockCep := &MockCepService{}
 
 		mockCep.On("Get", "12345678").Return("São Paulo", nil)
-		mockWeather.On("GetTemperature", "São Paulo").Return(0.0, errors.New("external error"))
+		mockWeather.On("GetTemperature", "São Paulo").Return(0.0, errors.New("external error")).Times(1)
 
 		usecase := NewGetTemperature(mockWeather, mockCep)
 		_, err := usecase.Execute("12345678")
@@ -86,5 +87,20 @@ func TestGetTemperature_Execute(t *testing.T) {
 		assert.ErrorIs(t, err, entity.ErrWeatherAPI)
 		mockCep.AssertExpectations(t)
 		mockWeather.AssertExpectations(t)
+	})
+
+	t.Run("should return ErrNotFound when CEP not found after 3 retries", func(t *testing.T) {
+		mockWeather := &MockWeatherService{}
+		mockCep := &MockCepService{}
+
+		mockCep.On("Get", "12345678").Return("", errors.New("request failed")).Times(3)
+
+		usecase := NewGetTemperature(mockWeather, mockCep)
+		usecase.TimeToSleep = 2 * time.Millisecond
+		_, err := usecase.Execute("12345678")
+
+		assert.ErrorIs(t, err, entity.ErrCEPNotFound)
+		mockCep.AssertExpectations(t)
+		mockWeather.AssertNotCalled(t, "GetTemperature")
 	})
 }
