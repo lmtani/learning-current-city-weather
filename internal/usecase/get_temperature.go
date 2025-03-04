@@ -1,6 +1,9 @@
 package usecase
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/lmtani/learning-current-city-weather/internal/entity"
 )
 
@@ -29,7 +32,7 @@ func (g *GetTemperature) Execute(cep string) (TemperatureOutputDTO, error) {
 		return TemperatureOutputDTO{}, entity.ErrCEPInvalid
 	}
 
-	city, err := g.cepAPI.Get(cep)
+	city, err := g.retryGetCity(cep)
 	if err != nil {
 		return TemperatureOutputDTO{}, err
 	}
@@ -49,4 +52,23 @@ func (g *GetTemperature) Execute(cep string) (TemperatureOutputDTO, error) {
 		Kelvin:     t.GetKelvin(),
 	}
 	return dto, nil
+}
+
+// retryGetCity retries the Get method in cepAPI up to 3 times.
+func (g *GetTemperature) retryGetCity(cep string) (string, error) {
+	var city string
+	var err error
+	for i := 0; i < 3; i++ {
+		city, err = g.cepAPI.Get(cep)
+		if err == nil {
+			return city, nil
+		}
+		if err == entity.ErrCEPNotFound {
+			return "", entity.ErrCEPNotFound
+		}
+		time.Sleep(2 * time.Second) // wait for 2 seconds before retrying
+	}
+
+	fmt.Println("Failed to get city after 3 retries. Assuming the city is not found.")
+	return "", entity.ErrCEPNotFound
 }
