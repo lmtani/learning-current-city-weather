@@ -1,5 +1,7 @@
 # GoExpert - From Brazilian CEP to Current Temperature
 
+![test](https://github.com/lmtani/learning-current-city-weather/actions/workflows/test.yml/badge.svg)
+
 Sistema em Go que recebe um CEP, identifica a cidade e retorna o clima atual temperatura em graus celsius (temp_C), fahrenheit (temp_F) e kelvin (temp_K).
 
 **Demo:** https://cep2weather-425952763790.us-central1.run.app?cep=13280001
