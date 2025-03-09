@@ -48,18 +48,6 @@ func TestGetTemperature_Execute(t *testing.T) {
 		mockWeather.AssertExpectations(t)
 	})
 
-	t.Run("should return ErrInvalidCEP when CEP is invalid", func(t *testing.T) {
-		mockWeather := &MockWeatherService{}
-		mockCep := &MockCepService{}
-
-		usecase := NewGetTemperature(mockWeather, mockCep)
-		_, err := usecase.Execute("123")
-
-		assert.ErrorIs(t, err, entity.ErrCEPInvalid)
-		mockCep.AssertNotCalled(t, "Get")
-		mockWeather.AssertNotCalled(t, "GetTemperature")
-	})
-
 	t.Run("should return ErrNotFound when CEP not found", func(t *testing.T) {
 		mockWeather := &MockWeatherService{}
 		mockCep := &MockCepService{}

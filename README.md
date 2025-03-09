@@ -1,6 +1,5 @@
 # GoExpert - CEP2Weather
 
-[![Tests](https://github.com/lmtani/learning-current-city-weather/actions/workflows/test.yml/badge.svg)](https://github.com/lmtani/learning-current-city-weather/actions/workflows/test.yml) [![Deploy](https://github.com/lmtani/learning-current-city-weather/actions/workflows/deploy.yml/badge.svg)](https://github.com/lmtani/learning-current-city-weather/actions/workflows/deploy.yml)
 
 **CEP2Weather** é um sistema em Go que recebe um CEP, identifica a cidade correspondente e retorna a temperatura atual em graus Celsius, Fahrenheit e Kelvin.
 
