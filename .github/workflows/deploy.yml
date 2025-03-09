@@ -1,44 +1,44 @@
-name: Deploy
+# name: Deploy
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v0
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+#       - name: Authenticate to Google Cloud
+#         uses: google-github-actions/auth@v0
+#         with:
+#           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v0
-        with:
-          project_id: your-gcp-project-id
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
+#       - name: Set up gcloud CLI
+#         uses: google-github-actions/setup-gcloud@v0
+#         with:
+#           project_id: your-gcp-project-id
+#           service_account_key: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Configure Docker for Artifact Registry
-        run: |
-          gcloud auth configure-docker us-central1-docker.pkg.dev
+#       - name: Configure Docker for Artifact Registry
+#         run: |
+#           gcloud auth configure-docker us-central1-docker.pkg.dev
 
-      - name: Build Docker image
-        run: |
-          docker build -t us-central1-docker.pkg.dev/learning-452622/learning/cep2weather:$GITHUB_SHA .
+#       - name: Build Docker image
+#         run: |
+#           docker build -t us-central1-docker.pkg.dev/learning-452622/learning/cep2weather:$GITHUB_SHA .
 
-      - name: Push Docker image to Container Registry
-        run: |
-          docker push us-central1-docker.pkg.dev/learning-452622/learning/cep2weather:$GITHUB_SHA
+#       - name: Push Docker image to Container Registry
+#         run: |
+#           docker push us-central1-docker.pkg.dev/learning-452622/learning/cep2weather:$GITHUB_SHA
 
-      - name: Deploy to Cloud Run
-        run: |
-          gcloud run deploy cep2weather \
-            --image us-central1-docker.pkg.dev/learning-452622/learning/cep2weather:$GITHUB_SHA \
-            --region us-central1 \
-            --platform managed \
-            --allow-unauthenticated
+#       - name: Deploy to Cloud Run
+#         run: |
+#           gcloud run deploy cep2weather \
+#             --image us-central1-docker.pkg.dev/learning-452622/learning/cep2weather:$GITHUB_SHA \
+#             --region us-central1 \
+#             --platform managed \
+#             --allow-unauthenticated
