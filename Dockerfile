@@ -6,11 +6,17 @@ RUN go mod download
 COPY . .
 RUN make build
 
-FROM scratch
+FROM scratch AS service_a
 
 WORKDIR /app
-COPY --from=builder /app/bin/server .
-# Copy CA certificates from the builder image
+COPY --from=builder /app/bin/svc-a .
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+CMD ["./svc-a"]
 
-CMD ["./server"]
+
+FROM scratch AS service_b
+
+WORKDIR /app
+COPY --from=builder /app/bin/svc-b .
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+CMD ["./svc-b"]

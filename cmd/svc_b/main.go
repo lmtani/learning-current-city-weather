@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Server is running on port 8080")
+	fmt.Println("Service B is running on port 8080")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", GetTemperature)
 
@@ -41,8 +41,6 @@ func GetTemperature(w http.ResponseWriter, r *http.Request) {
 	output, err := getTemperature.Execute(cep)
 	if err != nil {
 		switch err {
-		case entity.ErrCEPInvalid:
-			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		case entity.ErrCEPNotFound:
 			http.Error(w, err.Error(), http.StatusNotFound)
 		default:
@@ -54,6 +52,7 @@ func GetTemperature(w http.ResponseWriter, r *http.Request) {
 	// Return the temperature in JSON format.
 	err = json.NewEncoder(w).Encode(output)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

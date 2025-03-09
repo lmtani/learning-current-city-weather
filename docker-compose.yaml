@@ -1,11 +1,21 @@
 services:
 
-  server:
-    container_name: current-weather-for-cep
+  service-a:
+    container_name: service-a
     build:
       context: .
       dockerfile: Dockerfile
+      target: service_a
+    ports:
+      - "8080:8080"
+
+  service-b:
+    container_name: service-b
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: service_b
     env_file:
       - config/.env
     ports:
-      - "8080:8080"
+      - "8081:8080"

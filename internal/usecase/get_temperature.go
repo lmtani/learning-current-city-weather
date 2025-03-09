@@ -9,6 +9,7 @@ import (
 
 // TemperatureOutputDTO represents the temperature in different units.
 type TemperatureOutputDTO struct {
+	City       string  `json:"city"`
 	Celsius    float64 `json:"temp_C"`
 	Fahrenheit float64 `json:"temp_F"`
 	Kelvin     float64 `json:"temp_K"`
@@ -28,11 +29,6 @@ func NewGetTemperature(weatherAPI entity.WeatherService, cepAPI entity.CepServic
 
 // Execute returns the temperature of the given city.
 func (g *GetTemperature) Execute(cep string) (TemperatureOutputDTO, error) {
-	c := entity.CEP(cep)
-	if !c.IsValid() {
-		return TemperatureOutputDTO{}, entity.ErrCEPInvalid
-	}
-
 	city, err := g.retryGetCity(cep)
 	if err != nil {
 		return TemperatureOutputDTO{}, err
@@ -48,6 +44,7 @@ func (g *GetTemperature) Execute(cep string) (TemperatureOutputDTO, error) {
 	}
 
 	dto := TemperatureOutputDTO{
+		City:       city,
 		Celsius:    t.GetCelsius(),
 		Fahrenheit: t.GetFahrenheit(),
 		Kelvin:     t.GetKelvin(),
