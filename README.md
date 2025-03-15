@@ -1,15 +1,6 @@
 # GoExpert - CEP2Weather
 
-
-**CEP2Weather** é um sistema em Go que recebe um CEP, identifica a cidade correspondente e retorna a temperatura atual em graus Celsius, Fahrenheit e Kelvin.
-
-## Demonstração
-
-Acesse em produção (Google Cloud Run): **[CEP2Weather Demo](https://cep2weather-425952763790.us-central1.run.app?cep=13280001)**. Por exemplo:
-
-```plaintext
-https://cep2weather-425952763790.us-central1.run.app?cep=13280001
-```
+**CEP2Weather** é um sistema para estudos em Go que recebe um CEP, identifica a cidade correspondente e retorna a temperatura atual em graus Celsius, Fahrenheit e Kelvin.
 
 ## Funcionalidades
 
@@ -18,12 +9,24 @@ https://cep2weather-425952763790.us-central1.run.app?cep=13280001
 - **Conversões de temperatura**:  
   - Celsius para Fahrenheit: `F = C * 1.8 + 32`  
   - Celsius para Kelvin: `K = C + 273`
-- **Tratamento de erros**:
-  - CEP inválido (8 dígitos incorretos): retorna código HTTP **422** e mensagem `"invalid zipcode"`.
-  - CEP não encontrado: retorna código HTTP **404** e mensagem `"can not find zipcode"`.
-  - Timeout após 3 tentativas: empiricamente foi verificado que é um erro comum quando o CEP não é encontrado. Por isso retorna código HTTP **404** e mensagem `"can not find zipcode"`.
+- **Observabilidade**: 
+  - Traces distribuídos com OpenTelemetry
+  - Visualização de traces no Zipkin
+  - Métricas coletadas via Prometheus
 
-## Requisitos
+## Observabilidade
+
+O sistema está instrumentado com OpenTelemetry para coleta de métricas e traces distribuídos. Os traces são enviados para o Zipkin via OTLP e podem ser visualizados em http://localhost:9411.
+
+A arquitetura de observabilidade inclui:
+
+- **OpenTelemetry Collector**: Recebe traces e métricas dos serviços
+- **Zipkin**: Armazena e visualiza os traces
+- **Prometheus**: Coleta métricas do sistema
+
+## Como usar
+
+### Requisitos
 
 - **CEP**: Obrigatoriamente 8 dígitos.
 - **Formato de resposta em caso de sucesso** (HTTP 200):
@@ -36,12 +39,12 @@ https://cep2weather-425952763790.us-central1.run.app?cep=13280001
   }
   ```
 
-## Pré-requisitos
+### Pré-requisitos
 
 - **Docker** e **Docker Compose** instalados em seu ambiente.
 - **Chave de API** da [WeatherAPI](https://www.weatherapi.com/).
 
-## Configuração
+### Configuração
 
 1. **Clonar o repositório**:
 
@@ -62,11 +65,24 @@ https://cep2weather-425952763790.us-central1.run.app?cep=13280001
    docker compose up
    ```
 
-4. **Acessar a aplicação** (por padrão, via porta 8080):
+4. **Utilizar a aplicação** (por padrão, via porta 8080):
 
-   ```plaintext
-   http://localhost:8080/?cep=13280001
+   ```bash
+   curl -X POST -H 'Content-Type: application/json' -d '{"cep": "13280001"}' "http://localhost:8080"
    ```
+
+## Exemplo Prático
+
+1. Fazer uma requisição ao serviço:
+
+   ```bash
+   curl -X POST -H 'Content-Type: application/json' -d '{"cep": "13400008"}' "http://localhost:8080"
+   ```
+
+2. Visualizar o trace no Zipkin:
+   - Acessar http://localhost:9411
+   - Procurar pelo trace correspondente (Buscar por "ServiceName": "service-a")
+   - Visualizar os spans e o tempo de execução de cada serviço
 
 ## Testes
 
@@ -75,11 +91,3 @@ https://cep2weather-425952763790.us-central1.run.app?cep=13280001
   - `success.http`: Teste de sucesso com um CEP válido (expectativa de código **200**).
   - `invalid.http`: Teste com CEP inválido (expectativa de código **422**).
   - `not-found.http`: Teste com CEP não encontrado (expectativa de código **404**).
-
-## Deploy
-
-Este projeto está configurado para deploy automático no **Google Cloud Run** por meio de GitHub Actions. Para visualizar a configuração, consulte o arquivo `deploy.yml` no diretório `.github/workflows/`.
-
-1. **Pipeline de CI/CD**: A cada push na branch `main`, o teste é executado e, em seguida, o deploy é realizado no Cloud Run.
-2. **Imagem Docker**: A imagem é construída e enviada para o [Google Artifact Registry](https://cloud.google.com/artifact-registry), e então é feita a implantação no Cloud Run.
-3. **Novas revisões**: A cada novo deploy, uma nova revisão do serviço é criada automaticamente.
