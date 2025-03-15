@@ -13,10 +13,11 @@ import (
 
 	"github.com/lmtani/learning-current-city-weather/internal/entity"
 	"github.com/lmtani/learning-current-city-weather/internal/infra/cep"
-	"github.com/lmtani/learning-current-city-weather/internal/infra/otel"
+	otelConfig "github.com/lmtani/learning-current-city-weather/internal/infra/otel"
 	"github.com/lmtani/learning-current-city-weather/internal/usecase"
 	"github.com/lmtani/learning-current-city-weather/pkg/weather"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	otelShutdown, err := otel.SetupOTelSDK(ctx, "service-b")
+	otelShutdown, err := otelConfig.SetupOTelSDK(ctx, "service-b")
 	if err != nil {
 		return
 	}
@@ -84,6 +85,11 @@ func newHTTPHandler() http.Handler {
 
 // GetTemperature returns the temperature of a city.
 func GetTemperature(w http.ResponseWriter, r *http.Request) {
+	// get tracer
+	tracer := otel.Tracer("service-b")
+	_, span := tracer.Start(r.Context(), "Get-Temperature")
+	defer span.End()
+
 	cepService := cep.NewService()
 	weatherService := weather.NewService(os.Getenv("WEATHER_API_KEY"))
 	getTemperature := usecase.NewGetTemperature(weatherService, cepService)

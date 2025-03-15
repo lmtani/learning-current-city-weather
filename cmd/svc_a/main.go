@@ -12,9 +12,10 @@ import (
 	"time"
 
 	"github.com/lmtani/learning-current-city-weather/internal/entity"
-	"github.com/lmtani/learning-current-city-weather/internal/infra/otel"
+	otelConfig "github.com/lmtani/learning-current-city-weather/internal/infra/otel"
 	"github.com/lmtani/learning-current-city-weather/internal/usecase"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
 )
 
 func main() {
@@ -22,7 +23,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	otelShutdown, err := otel.SetupOTelSDK(ctx, "service-a")
+	otelShutdown, err := otelConfig.SetupOTelSDK(ctx, "service-a")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -83,6 +84,11 @@ func newHTTPHandler() http.Handler {
 }
 
 func handleCEPInput(w http.ResponseWriter, r *http.Request) {
+	// get tracer from otel
+	tracer := otel.Tracer("service-a")
+	ctx, span := tracer.Start(r.Context(), "handle-CEP-Input")
+	defer span.End()
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -103,8 +109,19 @@ func handleCEPInput(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Call Service B
-	resp, err := http.Get("http://service-b:8080/?cep=" + payload.CEP)
+	// Call Service B with the current context to propagate tracing
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://service-b:8080/?cep="+payload.CEP, nil)
+	if err != nil {
+		http.Error(w, "Failed to create request", http.StatusInternalServerError)
+		return
+	}
+
+	// Use otelhttp to make the request, which will automatically propagate the current span
+	client := &http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		http.Error(w, "Failed to get city", http.StatusInternalServerError)
 		return
