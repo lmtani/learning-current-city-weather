@@ -84,6 +84,9 @@ A arquitetura de observabilidade inclui:
    - Procurar pelo trace correspondente (Buscar por "ServiceName": "service-a")
    - Visualizar os spans e o tempo de execução de cada serviço
 
+Exemplo:
+![image](https://github.com/user-attachments/assets/fd74fa8c-7479-48dd-b9f5-5e35b5755c74)
+
 ## Testes
 
 - **Testes unitários**: Validam o caso de uso de busca de clima por CEP.
