@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -28,13 +29,13 @@ func NewGetTemperature(weatherAPI entity.WeatherService, cepAPI entity.CepServic
 }
 
 // Execute returns the temperature of the given city.
-func (g *GetTemperature) Execute(cep string) (TemperatureOutputDTO, error) {
-	city, err := g.retryGetCity(cep)
+func (g *GetTemperature) Execute(ctx context.Context, cep string) (TemperatureOutputDTO, error) {
+	city, err := g.retryGetCity(ctx, cep)
 	if err != nil {
 		return TemperatureOutputDTO{}, err
 	}
 
-	celsius, err := g.weatherAPI.GetTemperature(city)
+	celsius, err := g.weatherAPI.GetTemperature(ctx, city)
 	if err != nil {
 		return TemperatureOutputDTO{}, entity.ErrWeatherAPI
 	}
@@ -53,11 +54,11 @@ func (g *GetTemperature) Execute(cep string) (TemperatureOutputDTO, error) {
 }
 
 // retryGetCity retries the Get method in cepAPI up to 3 times.
-func (g *GetTemperature) retryGetCity(cep string) (string, error) {
+func (g *GetTemperature) retryGetCity(ctx context.Context, cep string) (string, error) {
 	var city string
 	var err error
 	for i := 0; i < 3; i++ {
-		city, err = g.cepAPI.Get(cep)
+		city, err = g.cepAPI.Get(ctx, cep)
 		if err == nil {
 			return city, nil
 		}

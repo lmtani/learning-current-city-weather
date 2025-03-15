@@ -1,9 +1,12 @@
 package weather
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Weather represents the weather data.
@@ -15,6 +18,7 @@ type Weather struct {
 // API is a weather service.
 type API struct {
 	apiKey string
+	Tracer trace.Tracer
 }
 
 // NewService creates a new weather service.
@@ -23,7 +27,13 @@ func NewService(apiKey string) *API {
 }
 
 // GetTemperature returns the temperature of the given city.
-func (a *API) GetTemperature(city string) (float64, error) {
+func (a *API) GetTemperature(ctx context.Context, city string) (float64, error) {
+	// if tracer is provided, use it
+	if a.Tracer != nil {
+		_, span := a.Tracer.Start(ctx, "request-weather-api")
+		defer span.End()
+	}
+
 	url := fmt.Sprintf("https://api.weatherapi.com/v1/current.json?q=%s&key=%s", city, a.apiKey)
 	resp, err := http.Get(url)
 	if err != nil {

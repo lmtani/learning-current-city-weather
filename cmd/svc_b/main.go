@@ -87,11 +87,14 @@ func newHTTPHandler() http.Handler {
 func GetTemperature(w http.ResponseWriter, r *http.Request) {
 	// get tracer
 	tracer := otel.Tracer("service-b")
-	_, span := tracer.Start(r.Context(), "Get-Temperature")
+	ctx, span := tracer.Start(r.Context(), "Get-Temperature")
 	defer span.End()
 
 	cepService := cep.NewService()
+	cepService.Tracer = tracer
 	weatherService := weather.NewService(os.Getenv("WEATHER_API_KEY"))
+	weatherService.Tracer = tracer
+
 	getTemperature := usecase.NewGetTemperature(weatherService, cepService)
 	cep := r.URL.Query().Get("cep")
 	if cep == "" {
@@ -99,7 +102,7 @@ func GetTemperature(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output, err := getTemperature.Execute(cep)
+	output, err := getTemperature.Execute(ctx, cep)
 	if err != nil {
 		switch err {
 		case entity.ErrCEPNotFound:

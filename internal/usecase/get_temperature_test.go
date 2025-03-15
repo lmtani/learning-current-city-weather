@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -14,7 +15,7 @@ type MockWeatherService struct {
 	mock.Mock
 }
 
-func (m *MockWeatherService) GetTemperature(city string) (float64, error) {
+func (m *MockWeatherService) GetTemperature(ctx context.Context, city string) (float64, error) {
 	args := m.Called(city)
 	return args.Get(0).(float64), args.Error(1)
 }
@@ -23,7 +24,7 @@ type MockCepService struct {
 	mock.Mock
 }
 
-func (m *MockCepService) Get(cep string) (string, error) {
+func (m *MockCepService) Get(ctx context.Context, cep string) (string, error) {
 	args := m.Called(cep)
 	return args.String(0), args.Error(1)
 }
@@ -37,7 +38,7 @@ func TestGetTemperature_Execute(t *testing.T) {
 		mockWeather.On("GetTemperature", "São Paulo").Return(25.0, nil).Times(1)
 
 		usecase := NewGetTemperature(mockWeather, mockCep)
-		result, err := usecase.Execute("12345678")
+		result, err := usecase.Execute(context.Background(), "12345678")
 
 		assert.Nil(t, err)
 		assert.Equal(t, 25.0, result.Celsius)
@@ -55,7 +56,7 @@ func TestGetTemperature_Execute(t *testing.T) {
 		mockCep.On("Get", "12345678").Return("", entity.ErrCEPNotFound).Times(1)
 
 		usecase := NewGetTemperature(mockWeather, mockCep)
-		_, err := usecase.Execute("12345678")
+		_, err := usecase.Execute(context.Background(), "12345678")
 
 		assert.ErrorIs(t, err, entity.ErrCEPNotFound)
 		mockCep.AssertExpectations(t)
@@ -70,7 +71,7 @@ func TestGetTemperature_Execute(t *testing.T) {
 		mockWeather.On("GetTemperature", "São Paulo").Return(0.0, errors.New("external error")).Times(1)
 
 		usecase := NewGetTemperature(mockWeather, mockCep)
-		_, err := usecase.Execute("12345678")
+		_, err := usecase.Execute(context.Background(), "12345678")
 
 		assert.ErrorIs(t, err, entity.ErrWeatherAPI)
 		mockCep.AssertExpectations(t)
@@ -85,7 +86,7 @@ func TestGetTemperature_Execute(t *testing.T) {
 
 		usecase := NewGetTemperature(mockWeather, mockCep)
 		usecase.TimeToSleep = 2 * time.Millisecond
-		_, err := usecase.Execute("12345678")
+		_, err := usecase.Execute(context.Background(), "12345678")
 
 		assert.ErrorIs(t, err, entity.ErrCEPNotFound)
 		mockCep.AssertExpectations(t)
