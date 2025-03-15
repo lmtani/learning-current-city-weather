@@ -85,7 +85,7 @@ A arquitetura de observabilidade inclui:
    - Visualizar os spans e o tempo de execução de cada serviço
 
 Exemplo:
-![image](https://github.com/user-attachments/assets/fd74fa8c-7479-48dd-b9f5-5e35b5755c74)
+![image](https://github.com/user-attachments/assets/1f60bdde-b43a-45e5-a93d-d0ee7ee15503)
 
 ## Testes
 
