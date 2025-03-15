@@ -24,7 +24,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	otelShutdown, err := otel.SetupOTelSDK(ctx)
+	otelShutdown, err := otel.SetupOTelSDK(ctx, "service-b")
 	if err != nil {
 		return
 	}

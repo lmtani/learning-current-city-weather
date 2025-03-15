@@ -8,6 +8,11 @@ services:
       target: service_a
     ports:
       - "8080:8080"
+    depends_on:
+      - otel-collector
+      - prometheus
+      - service-b
+      - zipkin
 
   service-b:
     container_name: service-b
@@ -19,3 +24,41 @@ services:
       - config/.env
     ports:
       - "8081:8080"
+    depends_on:
+      - otel-collector
+      - prometheus
+      - zipkin
+
+  otel-collector:
+    container_name: otel-collector
+    image: otel/opentelemetry-collector-contrib:0.121.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./.docker/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "1777:1777"   # pprof extension
+      - "8889:8889"   # Prometheus metrics exposed by the collector
+      - "13133:13133" # health_check extension
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "55679:55679" # zpages extension http://localhost:55679/debug/tracez
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    restart: always
+    volumes:
+      - ./.docker/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - otel-collector
+      
+  zipkin:
+    container_name: zipkin
+    image: openzipkin/zipkin:latest
+    restart: always
+    ports:
+      - "9411:9411"
+    depends_on:
+      - otel-collector

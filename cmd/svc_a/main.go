@@ -22,8 +22,9 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	otelShutdown, err := otel.SetupOTelSDK(ctx)
+	otelShutdown, err := otel.SetupOTelSDK(ctx, "service-a")
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	// Handle shutdown properly so nothing leaks.
@@ -49,6 +50,7 @@ func main() {
 	select {
 	case err = <-srvErr:
 		// Error when starting HTTP server.
+		fmt.Println(err)
 		return
 	case <-ctx.Done():
 		// Wait for first CTRL+C.
